@@ -629,6 +629,27 @@ section {
   margin-top: 50px;
 }
 
+/* Clip the original screenshots without changing their QR patterns.
+   Padding preserves a clear scanning margin around all four sides. */
+.payment-qr {
+  width: min(100%, 280px);
+  margin: 22px auto 16px;
+  padding: 28px;
+  background: #fff;
+  border-radius: 12px;
+}
+
+.payment-qr-zelle {
+  background: #f6f6f6;
+}
+
+.payment-qr svg {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+
 /* ---------- Footer ---------- */
 
 footer {
