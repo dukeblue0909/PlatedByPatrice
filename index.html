@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css" />
+<link rel="stylesheet" href="assets/css/style.css?v=multiweek-1" />
 </head>
 <body>
 
@@ -160,46 +160,61 @@
 
     <div class="request-layout">
       <div class="request-card">
-        <form id="textRequestForm" hidden>
+        <form id="textRequestForm" novalidate hidden>
           <h3>Your meal prep request</h3>
-          <p class="request-intro">Choose four entrees for each $65 bundle. Review your selections, then send them from your messaging app.</p>
+          <p class="request-intro">Choose one week or all four. Build your bundles, see the combined total, and send Patrice one organized text request.</p>
           <div class="request-fields">
             <div class="request-field">
               <label for="requestName">Your name <span>(required)</span></label>
               <input id="requestName" name="name" autocomplete="name" maxlength="80" required />
             </div>
             <div class="request-field">
-              <label for="requestBundles">Number of bundles <span>(required)</span></label>
-              <input id="requestBundles" name="bundles" type="number" min="1" max="10" step="1" inputmode="numeric" value="1" required aria-describedby="bundleHelp" />
-              <small id="bundleHelp">$65 includes 4 entrees per bundle. Menu upgrades are added to your estimate.</small>
+              <label for="requestPhone">Reply phone number <span>(optional)</span></label>
+              <input id="requestPhone" name="phone" type="tel" autocomplete="tel" maxlength="30" placeholder="Best number for Patrice to reach you" />
             </div>
             <div class="request-field request-field-wide">
-              <label for="requestWeek">Menu week <span>(required)</span></label>
-              <select id="requestWeek" name="week" required aria-describedby="requestWeekHelp"></select>
-              <small id="requestWeekHelp">Selections are saved on this page when you switch between menu weeks.</small>
+              <fieldset class="request-weeks">
+                <legend>Which weeks would you like?</legend>
+                <p>Check every week to include in your request. Availability is confirmed by Patrice.</p>
+                <div id="requestWeeks" class="request-week-options"></div>
+                <button id="includeAllWeeks" type="button" class="request-edit">Include all 4 weeks</button>
+              </fieldset>
+              <p id="requestValidation" class="request-error" role="alert" hidden></p>
+            </div>
+            <div class="request-field request-field-wide">
+              <label for="requestWeek">Customize this week</label>
+              <select id="requestWeek" aria-describedby="activeWeekStatus"></select>
+              <p id="activeWeekStatus" class="active-week-status"></p>
+              <button id="includeActiveWeek" type="button" class="request-edit" hidden>Include this week in my request</button>
+            </div>
+            <div class="request-field request-field-wide">
+              <label for="requestBundles">Bundles for this week <span>(required)</span></label>
+              <input id="requestBundles" name="bundles" type="number" min="1" max="10" step="1" inputmode="numeric" value="1" required aria-describedby="bundleHelp" />
+              <small id="bundleHelp">Each $65 bundle includes 4 entrees. Different weeks can have different bundle counts.</small>
             </div>
             <div class="request-field request-field-wide">
               <div id="requestSelections"></div>
               <p id="requestEstimate" class="request-estimate" role="status" aria-live="polite"></p>
-              <small>This is an estimate for a text request. Patrice confirms availability and the final total before payment.</small>
+              <p id="requestDraftNotice" class="request-disclosure">Meal choices are saved in this browser tab. Contact details, pickup preferences, and notes aren't saved.</p>
             </div>
             <div class="request-field request-field-wide">
-              <label for="requestPickup">Preferred pickup day or time <span>(optional)</span></label>
-              <input id="requestPickup" name="pickup" maxlength="120" placeholder="Tell Patrice what works for you" aria-describedby="pickupHelp" />
-              <small id="pickupHelp">This is a preference. Patrice will confirm your pickup time.</small>
+              <label for="requestAllergies">Food allergies or dietary needs <span>(optional)</span></label>
+              <textarea id="requestAllergies" name="allergies" rows="2" maxlength="500" placeholder="Tell Patrice what needs to be checked before she confirms your request."></textarea>
             </div>
             <div class="request-field request-field-wide">
-              <label for="requestNotes">Allergies or other notes <span>(optional)</span></label>
+              <label for="requestNotes">Other instructions or questions <span>(optional)</span></label>
               <textarea id="requestNotes" name="notes" rows="2" maxlength="500" placeholder="Share any dietary needs so Patrice can confirm what's possible."></textarea>
             </div>
           </div>
-          <button type="submit" class="btn btn-primary">Review Text Request <span aria-hidden="true">&rarr;</span></button>
+          <button type="submit" class="btn btn-primary">Review All Weeks &amp; Total <span aria-hidden="true">&rarr;</span></button>
           <p class="request-disclosure">Your details stay on this page until you choose to open or copy your message. Nothing is submitted through the website.</p>
         </form>
 
         <div id="requestReview" hidden>
-          <h3 id="requestReviewHeading" tabindex="-1">Review your message</h3>
+          <h3 id="requestReviewHeading" tabindex="-1">Review your complete request</h3>
           <p class="request-intro">Opening your messaging app creates a draft. Tap send there to reach Patrice.</p>
+          <div id="requestReviewTotals"></div>
+          <div id="requestReviewItems"></div>
           <label for="requestMessage">Your text to Patrice</label>
           <textarea id="requestMessage" class="request-message" rows="12" readonly></textarea>
           <div class="request-actions">
@@ -208,14 +223,24 @@
           </div>
           <p class="request-disclosure">Using a computer? Copy the message and text it to <a href="sms:+13137271187">313-727-1187</a> from your phone.</p>
           <p id="requestCopyStatus" class="request-status" role="status"></p>
+          <div class="request-actions request-save-actions">
+            <button id="downloadTextRequest" type="button" class="request-edit">Download summary (.txt)</button>
+            <button id="printTextRequest" type="button" class="request-edit">Print / Save as PDF</button>
+          </div>
           <button id="editTextRequest" type="button" class="request-edit">&larr; Edit your request</button>
         </div>
       </div>
 
       <aside class="request-guide" aria-label="How text requests work">
+        <div class="request-cart">
+          <h3>Your request at a glance</h3>
+          <div id="requestCart"></div>
+          <p>Menu pricing estimate. Patrice confirms availability, any other charges, and the final total before payment.</p>
+        </div>
         <h3>Good food starts with a conversation.</h3>
         <ol>
-          <li><strong>Tell us your favorites.</strong><span>Choose your menu week and four entrees per bundle, including your sides and extras.</span></li>
+          <li><strong>Build your weeks.</strong><span>Include any menu weeks. Choose four entrees per bundle with your sides and extras.</span></li>
+          <li><strong>Review everything together.</strong><span>Check each week's bundles, upgrades, pickup preference, and the combined estimate.</span></li>
           <li><strong>Send your text.</strong><span>Patrice will confirm the current menu, availability, and final total.</span></li>
           <li><strong>Pay after confirmation.</strong><span>Arrange payment with Patrice once your request is confirmed.</span></li>
         </ol>
@@ -268,6 +293,6 @@
 </footer>
 
 <script src="assets/js/menu-data.js"></script>
-<script src="assets/js/main.js"></script>
+<script src="assets/js/main.js?v=multiweek-1"></script>
 </body>
 </html>

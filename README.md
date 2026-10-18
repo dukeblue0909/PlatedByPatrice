@@ -23,11 +23,19 @@ Customers can select any entree multiple times. Mix-and-match entrees require a 
 
 ## Text requests and payments
 
-Customers enter their name, menu week, bundle count, four entree selections per bundle, preferred pickup, and notes in the `#order` section. The estimate includes the base bundle price and selected upgrades. Each bundle can have different selections. Switching weeks or reducing and restoring the bundle count preserves selections in the current page session. The builder shows a review with all choices and prices, then creates an SMS draft addressed to **313-727-1187**. Customers must send the message from their messaging app; nothing is submitted to a server or saved across page reloads. A copy option and visible message support desktop users or devices without an SMS app.
+Customers check any combination of the four menu weeks, including all four together. Every checked week is included in the request, even when another week is being edited. Browsing a menu alone does not add it to the request. Each week has its own bundle count, four complete entree choices per bundle, and optional pickup preference. The customer supplies a name, optional reply number, dietary needs, and other instructions. Customers can copy the previous entree with all its options or duplicate a bundle within the same week.
+
+The cart and final review show each week's bundle subtotal and upgrades, plus combined week/bundle/entree counts and an overall menu-price estimate. Prices use integer cents, and no unprovided taxes, fees, discounts, or pickup availability are invented. Every checked week must have four complete entree choices per bundle before review; the editor moves to the first missing choice. Removed weeks keep their selections but contribute no cost. Counts are limited to 1–10 bundles per included week.
+
+Meal selections and included weeks are saved in `sessionStorage` in the current browser tab and restored after reload. Contact information, pickup preferences, allergy information, and notes are **not** persisted. Saved choices are discarded if the menu data changes, and unavailable browser storage does not block using the form. There is no server-side order record or shared customer database.
+
+The review presents all meal details and creates one itemized SMS draft addressed to **313-727-1187**, including a request reference, preparation time in Detroit, contact/dietary notes, each week's pickup preference and bundle breakdown, and the combined estimate. The reference is for matching summaries; it is not an order confirmation. Customers must tap Send in their messaging app. Copy, text-file download, and a print/PDF layout provide alternatives for longer multi-week requests or computers without an SMS app. Print and download summaries retain the confirmation requirement. The site cannot verify message delivery.
 
 Online ordering and checkout are not enabled. A text request does not reserve a bundle or confirm an order. Cash App and Zelle details are available in a collapsed section for customers whose requests Patrice has already confirmed. Set up a payment provider and a suitable checkout integration before enabling online orders; GitHub Pages cannot run a payment backend or verify payments.
 
 When changing the phone number, update the SMS links, generated message link in `assets/js/main.js`, and visible phone number together. Prices in `menu-data.js` are integer cents; the banner, estimates, and message use those prices. If the four-entree bundle size or base price changes, also update the explanatory copy and no-JavaScript fallback in `index.html`.
+
+The stylesheet and application script URLs include a release query parameter in `index.html`; update it when deploying incompatible markup/script changes so browsers fetch matching assets.
 
 ## Running locally
 
