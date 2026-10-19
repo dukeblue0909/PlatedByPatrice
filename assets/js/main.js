@@ -158,7 +158,8 @@ if (menus.length && requestForm && requestReview) {
       copyButton.addEventListener("click", copyPrevious);
       node.append(copyButton);
     }
-    node.append(details);
+    const price = element("p", "meal-price");
+    node.append(details, price);
     select.addEventListener("change", () => {
       const entree = menu.entrees.find((item) => item.id === select.value);
       fields = (entree?.fields || []).map((field) => createField(field, prefix));
@@ -167,6 +168,10 @@ if (menus.length && requestForm && requestReview) {
     });
     return {
       node, copyButton,
+      updatePrice() {
+        const extras = fields.reduce((sum, field) => sum + field.read().extraCents, 0);
+        price.textContent = select.value ? `Entree add-ons: ${money(extras)}` : "";
+      },
       read() {
         const entree = menu.entrees.find((item) => item.id === select.value);
         const options = fields.map((field) => field.read());
@@ -245,8 +250,9 @@ if (menus.length && requestForm && requestReview) {
         state.bundles[state.count - 1].meals.forEach((meal, mealIndex) => meal.restore(snapshot[mealIndex]));
         updateEstimate();
       });
-      node.append(duplicate, ...meals.map((meal) => meal.node));
-      state.bundles.push({ node, meals, duplicate });
+      const price = element("p", "bundle-price");
+      node.append(duplicate, ...meals.map((meal) => meal.node), price);
+      state.bundles.push({ node, meals, duplicate, price });
       state.bundlesNode.append(node);
     }
     state.bundles.forEach((bundle, index) => {
@@ -335,6 +341,9 @@ if (menus.length && requestForm && requestReview) {
     for (const item of states.values()) {
       for (const bundle of item.bundles) {
         bundle.duplicate.disabled = item.count >= 10;
+        bundle.meals.forEach((meal) => meal.updatePrice());
+        const extras = bundle.meals.reduce((sum, meal) => sum + meal.read().extraCents, 0);
+        bundle.price.textContent = `Bundle total: ${money(item.menu.priceCents + extras)} · Includes ${money(extras)} in add-ons`;
         bundle.meals.forEach((meal, index) => { if (index > 0) meal.copyButton.disabled = bundle.meals[index - 1].snapshot()[0].value === ""; });
       }
     }

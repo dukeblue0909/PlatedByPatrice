@@ -1,10 +1,10 @@
 :root {
-  --cream: #f6efe2;
-  --cream-dark: #ece2cd;
-  --ink: #201a15;
-  --red: #a5342a;
-  --red-dark: #7e2620;
-  --gold: #c9a227;
+  --cream: #fff9ef;
+  --cream-dark: #ffe9c7;
+  --ink: #302017;
+  --red: #bc3c26;
+  --red-dark: #942c1c;
+  --gold: #f7be45;
   --serif: "Playfair Display", Georgia, "Times New Roman", serif;
   --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -49,7 +49,7 @@ a {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(246, 239, 226, 0.94);
+  background: rgba(255, 249, 239, 0.96);
   backdrop-filter: blur(6px);
   border-bottom: 1px solid rgba(32, 26, 21, 0.08);
 }
@@ -185,7 +185,7 @@ a {
   height: 100%;
   object-fit: cover;
   object-position: center 30%;
-  opacity: 0.55;
+  opacity: 0.82;
 }
 
 .hero-media::after {
@@ -194,9 +194,9 @@ a {
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(20, 14, 10, 0.55) 0%,
-    rgba(20, 14, 10, 0.35) 40%,
-    rgba(20, 14, 10, 0.85) 100%
+    rgba(48, 24, 10, 0.48) 0%,
+    rgba(48, 24, 10, 0.28) 40%,
+    rgba(48, 24, 10, 0.65) 100%
   );
 }
 
@@ -602,7 +602,7 @@ section {
 /* ---------- Order / Contact ---------- */
 
 .order-section {
-  background: var(--ink);
+  background: #713321;
   color: #f6efe2;
 }
 
@@ -1239,7 +1239,7 @@ button:disabled {
 /* ---------- Footer ---------- */
 
 footer {
-  background: #140f0c;
+  background: #48251b;
   color: rgba(246, 239, 226, 0.6);
   text-align: center;
   padding: 34px 20px;
@@ -1248,4 +1248,49 @@ footer {
 
 footer strong {
   color: #f6efe2;
+}
+
+/* Warm citrus accents and live pricing. */
+.menu-card {
+  border-top: 4px solid var(--gold);
+  box-shadow: 0 12px 30px rgba(148, 44, 28, 0.08);
+}
+
+.menu-card:nth-child(3n + 2) { border-top-color: var(--red); }
+.menu-card:nth-child(3n) { border-top-color: #527447; }
+
+.menu-banner {
+  background: linear-gradient(110deg, var(--red-dark), var(--red));
+}
+
+.chip {
+  background: #ffe2a8;
+  color: #713321;
+}
+
+.request-week-option:has(input:checked) {
+  background: #fff0d7;
+}
+
+.meal-price {
+  color: var(--red-dark);
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 16px 0 0;
+}
+
+.bundle-price {
+  background: var(--cream-dark);
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 700;
+  margin: 0 0 18px;
+}
+
+.request-estimate {
+  border-left: 4px solid var(--red);
+}
+
+.cart-grand-total {
+  color: var(--red-dark);
 }
