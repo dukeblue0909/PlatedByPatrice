@@ -1,3 +1,20 @@
+const REQUEST_ENDPOINT = 'https://plated-by-patrice-requests.dariouswaters.chatgpt.site/api/submit';
+async function submitWebsiteRequest(payload, button, status) {
+  button.disabled = true;
+  status.textContent = 'Saving your request…';
+  try {
+    const response = await fetch(REQUEST_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: AbortSignal.timeout(25000) });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || 'We could not confirm receipt. Please retry or text Patrice.');
+    status.textContent = `Request received! Reference ${result.reference}. Patrice will confirm availability, final pricing, and pickup details. Please wait for confirmation before paying.`;
+    button.textContent = 'Request received ✓';
+    return true;
+  } catch (error) {
+    status.textContent = `${error.name === 'TimeoutError' || error.name === 'TypeError' ? 'Connection interrupted. Please retry or text Patrice.' : error.message} Retrying this request will not create a duplicate.`;
+    button.disabled = false;
+    return false;
+  }
+}
 const navToggle = document.getElementById("navToggle");
 const navLinks = document.getElementById("navLinks");
 
@@ -42,7 +59,21 @@ if (menus.length && requestForm && requestReview) {
   const states = new Map();
   const draftKey = "patrice-meal-request-v1";
   const menuVersion = JSON.stringify(menus);
-  const reference = `PBP-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+  let requestId = crypto.randomUUID();
+  let reference = `PBP-${requestId.slice(0, 8).toUpperCase()}`;
+  const reviewedRequests = new Map();
+  let websitePayload = null;
+  const submitButton = document.getElementById('submitWebsiteRequest');
+  const submitStatus = document.getElementById('websiteSubmitStatus');
+  submitButton.addEventListener('click', async () => {
+    if (!websitePayload) return;
+    const payload = websitePayload;
+    const editButton = document.getElementById('editTextRequest');
+    editButton.disabled = true;
+    const accepted = await submitWebsiteRequest(payload, submitButton, submitStatus);
+    if (accepted) reviewedRequests.get(JSON.stringify({ ...payload, id: undefined })).submitted = true;
+    editButton.disabled = false;
+  });
   let restoring = true;
   let activeMenu;
 
@@ -433,8 +464,8 @@ if (menus.length && requestForm && requestReview) {
     const phoneInput = document.getElementById("requestPhone");
     const phone = phoneInput.value.trim();
     const digits = phone.replace(/\D/g, "");
-    phoneInput.setCustomValidity(!phone || (/^\+?[\d\s().-]+$/.test(phone) && digits.length >= 7 && digits.length <= 15) ? "" : "Please enter a valid reply phone number, or leave it blank.");
-    if (!phoneInput.checkValidity()) return showError("Check your reply phone number.", phoneInput);
+    phoneInput.setCustomValidity((/^\+?[\d\s().-]+$/.test(phone) && digits.length >= 7 && digits.length <= 15) ? "" : "Please enter a valid reply phone number, so Patrice can confirm your request.");
+    if (!phone || !phoneInput.checkValidity()) return showError("Check your reply phone number.", phoneInput);
     if (!selectedWeeks.size) return showError("Include at least one menu week in your request.", weekOptions.querySelector("input"));
     if (selectedWeeks.has(activeMenu.week) && (!countInput.value || !countInput.checkValidity())) return showError("Choose between 1 and 10 whole bundles for this week.", countInput);
     const originalWeek = activeMenu.week;
@@ -448,6 +479,18 @@ if (menus.length && requestForm && requestReview) {
     const request = readRequest();
     const customer = { name: nameInput.value.trim(), phone, allergies: document.getElementById("requestAllergies").value.trim(), notes: document.getElementById("requestNotes").value.trim() };
     renderReview(request, customer);
+    const requestData = { customer: customer.name, contact: phone, type: 'Bundle', quantity: request.bundleCount, guests: 0, total: request.totalCents,
+      details: request.weeks.map(week => [week.menu.label, `Pickup preference: ${week.pickup || 'Please confirm'}`, ...week.bundles.flatMap((bundle, i) => [`Bundle ${i+1}:`, ...bundle.map(meal => `${meal.label}: ${meal.details.join('; ')}`)])].join('\n')).join('\n\n'),
+      notes: [`Website estimate only; confirm price and availability.`, customer.allergies ? `ALLERGIES / DIETARY: ${customer.allergies}` : '', customer.notes].filter(Boolean).join('\n'), website: document.getElementById('requestWebsite').value };
+    const fingerprint = JSON.stringify(requestData);
+    if (!reviewedRequests.has(fingerprint)) reviewedRequests.set(fingerprint, { id: crypto.randomUUID(), submitted: false });
+    const previous = reviewedRequests.get(fingerprint);
+    requestId = previous.id;
+    reference = `PBP-${requestId.slice(0, 8).toUpperCase()}`;
+    websitePayload = { ...requestData, id: requestId };
+    submitButton.disabled = previous.submitted;
+    submitButton.textContent = previous.submitted ? 'Request received ✓' : 'Submit request to Patrice';
+    submitStatus.textContent = previous.submitted ? `Request ${reference} was already received. Patrice will confirm the details.` : 'Ready to submit. Your request is saved only after you click Submit request to Patrice.';
     const prepared = new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", dateStyle: "medium", timeStyle: "short" }).format(new Date());
     const weekLines = request.weeks.flatMap((week) => [
       week.menu.label.toUpperCase(),
@@ -541,4 +584,23 @@ if (menus.length && requestForm && requestReview) {
   restoring = false;
   updateEstimate();
   menuWeek.hidden = false;
+}
+
+
+const cateringForm = document.getElementById('cateringRequestForm');
+if (cateringForm) {
+  let lastFingerprint = '', cateringId = '';
+  cateringForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!cateringForm.reportValidity()) return;
+    const data = new FormData(cateringForm);
+    const payload = { customer: String(data.get('customer')).trim(), contact: String(data.get('contact')).trim(), type: 'Catering', quantity: 1, guests: Number(data.get('guests')), total: 0,
+      details: `Event: ${data.get('event')}\nRequested date/time: ${data.get('date')} (Detroit local time)\nLocation / pickup preference: ${data.get('location')}\nMenu request: ${data.get('menu')}`,
+      notes: `Quote needed. Not a confirmed booking.\nDietary needs / notes: ${data.get('notes')}`, website: String(data.get('website') || '') };
+    const fingerprint = JSON.stringify(payload);
+    if (fingerprint !== lastFingerprint) { cateringId = crypto.randomUUID(); lastFingerprint = fingerprint; }
+    const button = cateringForm.querySelector('button[type=submit]');
+    const ok = await submitWebsiteRequest({ ...payload, id: cateringId }, button, document.getElementById('cateringSubmitStatus'));
+    if (ok) cateringForm.querySelectorAll('input, textarea').forEach(input => { input.readOnly = true; });
+  });
 }
