@@ -218,6 +218,11 @@
           <div id="requestReviewItems"></div>
           <label for="requestMessage">Your text to Patrice</label>
           <textarea id="requestMessage" class="request-message" rows="12" readonly></textarea>
+          <div id="onlineRequest" hidden>
+            <button id="submitOnlineRequest" type="button" class="btn btn-primary">Submit request to Patrice</button>
+            <p id="onlineRequestStatus" class="request-status" role="status" aria-live="polite"></p>
+            <p class="request-disclosure">Submitting saves your name, reply number, meal selections, pickup preferences, dietary notes, and instructions in Patrice's private order system so she can arrange your request. Patrice must confirm availability and final price before payment.</p>
+          </div>
           <div class="request-actions">
             <a id="sendTextRequest" class="btn btn-primary" href="sms:+13137271187">Open Text Message</a>
             <button id="copyTextRequest" type="button" class="btn btn-request-secondary">Copy Message</button>
@@ -294,6 +299,7 @@
 </footer>
 
 <script src="assets/js/menu-data.js"></script>
-<script src="assets/js/main.js?v=warm-live-pricing-2"></script>
+<script src="assets/js/order-config.js?v=orders-1"></script>
+<script src="assets/js/main.js?v=orders-1"></script>
 </body>
 </html>

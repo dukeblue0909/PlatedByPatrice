@@ -1,0 +1,24 @@
+// Run only against the local Wrangler development server; creates test orders.
+import assert from 'node:assert/strict';
+const base = 'http://127.0.0.1:8787';
+const site = 'http://127.0.0.1:8000';
+const meal = () => [{suffix:'',value:'chipotle'},...['black-beans','sour-cream','salsa','corn-salsa','pico','chips','guacamole'].map(id=>({suffix:'-'+id,checked:id==='guacamole'}))];
+const body={id:crypto.randomUUID(),customer:{name:'Integration Test Customer',phone:'3135550100',allergies:'No peanuts',notes:'Local test only'},expectedTotalCents:15400,weeks:[{week:'2026-10-19',pickup:'Friday preference',bundles:[[meal(),meal(),meal(),meal()]]},{week:'2026-10-26',pickup:'Following week',bundles:[Array.from({length:4},()=>[{suffix:'',value:'alfredo'},{suffix:'-protein',value:'both'},{suffix:'-mushrooms',checked:false}])]}]};
+let res=await fetch(base+'/api/chef/orders');assert.equal(res.status,401);
+res=await fetch(base+'/api/orders',{method:'POST',headers:{Origin:'https://untrusted.example','Content-Type':'application/json'},body:JSON.stringify(body)});assert.equal(res.status,403);
+res=await fetch(base+'/api/orders',{method:'OPTIONS',headers:{Origin:site,'Access-Control-Request-Method':'POST'}});assert.equal(res.status,204);assert.equal(res.headers.get('Access-Control-Allow-Origin'),site);
+res=await fetch(base+'/api/orders',{method:'POST',headers:{Origin:site,'Content-Type':'application/json'},body:JSON.stringify(body)});assert.equal(res.status,201,await res.clone().text());const receipt=await res.json();assert.match(receipt.reference,/^PBP-[A-F0-9]{24}$/);
+res=await fetch(base+'/api/chef/login',{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},body:JSON.stringify({password:'incorrect'})});assert.equal(res.status,401);
+res=await fetch(base+'/api/chef/login',{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},body:JSON.stringify({password:process.env.TEST_CHEF_PASSWORD||'local-testing-password-only'})});assert.equal(res.status,200,await res.clone().text());const rawCookie=res.headers.get('Set-Cookie');assert.match(rawCookie,/HttpOnly/);assert.match(rawCookie,/Secure/);assert.match(rawCookie,/SameSite=Strict/);const cookie=rawCookie.split(';')[0];
+const headers={Origin:base,Cookie:cookie,'Content-Type':'application/json'};
+let data=await(await fetch(base+'/api/chef/orders',{headers})).json();let entries=data.orders.filter(o=>o.order.requestReference===receipt.reference);assert.equal(entries.length,2);assert.equal(entries.reduce((s,o)=>s+o.order.totalCents,0),15400);
+let first=entries[0];
+res=await fetch(base+'/api/chef/orders/'+first.id,{method:'PATCH',headers:{...headers,Origin:'https://untrusted.example'},body:JSON.stringify({status:'Confirmed',version:first.version})});assert.equal(res.status,403);
+res=await fetch(base+'/api/chef/orders/'+first.id,{method:'PATCH',headers,body:JSON.stringify({status:'Confirmed',version:first.version})});assert.equal(res.status,200);
+res=await fetch(base+'/api/chef/orders/'+first.id,{method:'PATCH',headers,body:JSON.stringify({payment:'Paid',version:first.version})});assert.equal(res.status,409);
+res=await fetch(base+'/api/orders',{method:'POST',headers:{Origin:site,'Content-Type':'application/json'},body:JSON.stringify(body)});assert.equal(res.status,201);
+data=await(await fetch(base+'/api/chef/orders',{headers})).json();entries=data.orders.filter(o=>o.order.requestReference===receipt.reference);assert.equal(entries.length,2);assert.equal(entries.find(o=>o.id===first.id).status,'Confirmed');assert.equal(entries.find(o=>o.id!==first.id).status,'New');
+body.customer.name='Changed Customer';res=await fetch(base+'/api/orders',{method:'POST',headers:{Origin:site,'Content-Type':'application/json'},body:JSON.stringify(body)});assert.equal(res.status,201);assert.notEqual((await res.json()).reference,receipt.reference);
+res=await fetch(base+'/chef');assert.equal(res.status,200);assert.match(res.headers.get('Content-Security-Policy'),/frame-ancestors 'none'/);assert.equal((await res.text()).includes('Integration Test Customer'),false);
+res=await fetch(base+'/api/chef/logout',{method:'POST',headers,body:'{}'});assert.equal(res.status,200);assert.match(res.headers.get('Set-Cookie'),/Max-Age=0/);
+console.log('PASS: local D1 persistence, canonical totals, private reads, login/cookies, CORS/CSRF, separate weekly status, stale-update conflicts, duplicate retry protection, immutable references, private page headers, logout.');

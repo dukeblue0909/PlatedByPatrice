@@ -27,11 +27,11 @@ Customers check any combination of the four menu weeks, including all four toget
 
 The cart and final review show each week's bundle subtotal and upgrades, plus combined week/bundle/entree counts and an overall menu-price estimate. Prices use integer cents, and no unprovided taxes, fees, discounts, or pickup availability are invented. Every checked week must have four complete entree choices per bundle before review; the editor moves to the first missing choice. Removed weeks keep their selections but contribute no cost. Counts are limited to 1–10 bundles per included week.
 
-Meal selections and included weeks are saved in `sessionStorage` in the current browser tab and restored after reload. Contact information, pickup preferences, allergy information, and notes are **not** persisted. Saved choices are discarded if the menu data changes, and unavailable browser storage does not block using the form. There is no server-side order record or shared customer database.
+Meal selections and included weeks are saved in `sessionStorage` in the current browser tab and restored after reload. Contact information, pickup preferences, allergy information, and notes are **not** persisted. Saved choices are discarded if the menu data changes, and unavailable browser storage does not block using the form. Until the Cloudflare order service is deployed and configured, there is no server-side order record or shared customer database. See the private dashboard setup below.
 
 The review presents all meal details and creates one itemized SMS draft addressed to **313-727-1187**, including a request reference, preparation time in Detroit, contact/dietary notes, each week's pickup preference and bundle breakdown, and the combined estimate. The reference is for matching summaries; it is not an order confirmation. Customers must tap Send in their messaging app. Copy, text-file download, and a print/PDF layout provide alternatives for longer multi-week requests or computers without an SMS app. Print and download summaries retain the confirmation requirement. The site cannot verify message delivery.
 
-Online ordering and checkout are not enabled. A text request does not reserve a bundle or confirm an order. Cash App and Zelle details are available in a collapsed section for customers whose requests Patrice has already confirmed. Set up a payment provider and a suitable checkout integration before enabling online orders; GitHub Pages cannot run a payment backend or verify payments.
+Online submissions remain disabled until the order service is configured. Payment checkout is not enabled. A text request does not reserve a bundle or confirm an order. Cash App and Zelle details are available in a collapsed section for customers whose requests Patrice has already confirmed. Set up a payment provider and a suitable checkout integration before enabling online orders; GitHub Pages cannot run a payment backend or verify payments.
 
 When changing the phone number, update the SMS links, generated message link in `assets/js/main.js`, and visible phone number together. Prices in `menu-data.js` are integer cents; the banner, estimates, and message use those prices. If the four-entree bundle size or base price changes, also update the explanatory copy and no-JavaScript fallback in `index.html`.
 
@@ -52,3 +52,9 @@ Then open `http://localhost:8000`.
 3. Under **Build and deployment**, set **Source** to `Deploy from a branch`.
 4. Pick the branch this site lives on and `/ (root)` as the folder, then save.
 5. GitHub will publish the site at `https://<username>.github.io/<repo-name>/` within a minute or two.
+
+## Private chef dashboard and saved requests
+
+The new [order service](order-service/README.md) uses Cloudflare Workers and D1 to save customer requests and serve a private `/chef` dashboard. It includes weekly status tracking, manual payment records, customer/week filters, detailed meals and allergy notes, and a printable combined prep list. Two-week requests have separate weekly entries so pickups can be tracked independently.
+
+The service requires Cloudflare account setup, a D1 database, and two server secrets. It is not connected by default. `assets/js/order-config.js` holds only the public HTTPS service origin; leave it empty until deployment and a live submission check are complete. The existing text flow continues working while it is empty. Online submissions require a reply phone number and explicit submission after review. No payment is collected, and Patrice still confirms requests.

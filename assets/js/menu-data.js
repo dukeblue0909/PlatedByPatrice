@@ -19,7 +19,7 @@
   const simpleSides = (labels) => choices(labels);
   const seasonedRice = () => choice("seasoned-rice", "Seasoned rice", 0, [rice()]);
 
-  window.PATRICE_MENUS = [
+  globalThis.PATRICE_MENUS = [
     {
       week: "2026-10-05", label: "Week of October 5, 2026", priceCents: 6500, mealCount: 4,
       entrees: [

@@ -45,6 +45,72 @@ if (menus.length && requestForm && requestReview) {
   const reference = `PBP-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
   let restoring = true;
   let activeMenu;
+  const apiOrigin = (() => {
+    try {
+      const url = new URL(window.PATRICE_ORDER_API);
+      return url.protocol === "https:" && url.pathname === "/" && !url.username && !url.password && !url.search && !url.hash ? url.origin : "";
+    } catch { return ""; }
+  })();
+  let pendingSubmission;
+  let previousPayload = "";
+  const submissionId = (() => {
+    try {
+      const stored = sessionStorage.getItem("patrice-submission-id-v1");
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(stored || "")) return stored;
+      const id = crypto.randomUUID();
+      sessionStorage.setItem("patrice-submission-id-v1", id);
+      return id;
+    } catch { return crypto.randomUUID(); }
+  })();
+  let savedReceipt;
+  const submitOnline = document.getElementById("submitOnlineRequest");
+  const onlineStatus = document.getElementById("onlineRequestStatus");
+  if (apiOrigin) {
+    document.getElementById("onlineRequest").hidden = false;
+    const phoneLabel = document.querySelector('label[for="requestPhone"] span');
+    phoneLabel.textContent = "(required)";
+    document.getElementById("requestPhone").required = true;
+    document.querySelector("#order .section-head h2").textContent = "Let's plan your meals";
+    document.querySelector("#textRequestForm .request-intro").textContent = "Choose your weeks, build your bundles, and submit one organized request directly to Patrice.";
+    document.querySelector("#textRequestForm > .request-disclosure").textContent = "Review your choices first. Nothing is submitted until you choose Submit request to Patrice.";
+    document.querySelector("#requestReview > .request-intro").textContent = "Submit your request below. Patrice will confirm availability, pickup, and the final price. Texting is also available as an alternative.";
+    const steps = document.querySelectorAll(".request-guide li");
+    steps[2].querySelector("strong").textContent = "Submit your request.";
+    steps[2].querySelector("span").textContent = "Your request goes into Patrice's order system for review. She'll contact you to confirm.";
+    document.querySelector(".request-guide > p").textContent = "Submitting a request does not confirm availability or take payment. Please wait for Patrice's confirmation.";
+  }
+  function showReceipt(data) {
+    onlineStatus.textContent = `Request received: ${data.reference}. Patrice must confirm availability, pickup, and final price before payment. Please keep this reference; no payment has been taken.`;
+    submitOnline.textContent = "Request received";
+    submitOnline.disabled = true;
+    messageField.value = messageField.value.replace(reference, data.reference);
+    document.querySelector(".request-reference").textContent = `Request ${data.reference} · ${pendingSubmission.customer.name}`;
+    sendLink.href = sendLink.href.replace(encodeURIComponent(reference), encodeURIComponent(data.reference));
+    sendLink.textContent = "Text Patrice about this request";
+  }
+  submitOnline.addEventListener("click", async () => {
+    if (!apiOrigin || !pendingSubmission || submitOnline.disabled) return;
+    submitOnline.disabled = true;
+    document.getElementById("editTextRequest").disabled = true;
+    onlineStatus.textContent = "Saving your request…";
+    try {
+      const result = await fetch(`${apiOrigin}/api/orders`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pendingSubmission), signal: AbortSignal.timeout(20000),
+      });
+      const data = await result.json();
+      if (!result.ok) throw new Error(data.error || "We couldn't save your request. Please retry or text Patrice.");
+      if (typeof data.reference !== "string" || data.totalCents !== pendingSubmission.expectedTotalCents) throw new Error("We couldn't verify the saved request. Please retry using this same request.");
+      savedReceipt = { ...data, payload: previousPayload };
+      showReceipt(data);
+    } catch (error) {
+      onlineStatus.textContent = error.name === "TimeoutError" || error instanceof TypeError ? "We couldn't verify receipt. Retry here with the same request to avoid duplicates, or text Patrice and mention this attempt." : error.message;
+      submitOnline.disabled = false;
+    } finally {
+      document.getElementById("editTextRequest").disabled = false;
+    }
+  });
+
 
   for (const menu of menus) {
     menuWeek.add(new Option(menu.label, menu.week));
@@ -433,7 +499,7 @@ if (menus.length && requestForm && requestReview) {
     const phoneInput = document.getElementById("requestPhone");
     const phone = phoneInput.value.trim();
     const digits = phone.replace(/\D/g, "");
-    phoneInput.setCustomValidity(!phone || (/^\+?[\d\s().-]+$/.test(phone) && digits.length >= 7 && digits.length <= 15) ? "" : "Please enter a valid reply phone number, or leave it blank.");
+    phoneInput.setCustomValidity((!phone && !apiOrigin) || (/^\+?[\d\s().-]+$/.test(phone) && digits.length >= 7 && digits.length <= 15) ? "" : apiOrigin ? "Please enter a valid reply phone number." : "Please enter a valid reply phone number, or leave it blank.");
     if (!phoneInput.checkValidity()) return showError("Check your reply phone number.", phoneInput);
     if (!selectedWeeks.size) return showError("Include at least one menu week in your request.", weekOptions.querySelector("input"));
     if (selectedWeeks.has(activeMenu.week) && (!countInput.value || !countInput.checkValidity())) return showError("Choose between 1 and 10 whole bundles for this week.", countInput);
@@ -448,6 +514,24 @@ if (menus.length && requestForm && requestReview) {
     const request = readRequest();
     const customer = { name: nameInput.value.trim(), phone, allergies: document.getElementById("requestAllergies").value.trim(), notes: document.getElementById("requestNotes").value.trim() };
     renderReview(request, customer);
+    const payload = {
+      customer,
+      expectedTotalCents: request.totalCents,
+      weeks: request.weeks.map((week) => ({
+        week: week.menu.week, pickup: week.pickup,
+        bundles: states.get(week.menu.week).bundles.slice(0, week.bundles.length).map((bundle) => bundle.meals.map((meal) => meal.snapshot())),
+      })),
+    };
+    const serialized = JSON.stringify(payload);
+    if (serialized !== previousPayload) {
+
+      previousPayload = serialized;
+      submitOnline.disabled = false;
+      submitOnline.textContent = "Submit request to Patrice";
+      onlineStatus.textContent = "";
+    }
+    pendingSubmission = { ...payload, id: submissionId };
+
     const prepared = new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", dateStyle: "medium", timeStyle: "short" }).format(new Date());
     const weekLines = request.weeks.flatMap((week) => [
       week.menu.label.toUpperCase(),
@@ -474,6 +558,8 @@ if (menus.length && requestForm && requestReview) {
     messageField.value = message;
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     sendLink.href = `sms:+13137271187${isIOS ? "&" : "?"}body=${encodeURIComponent(message)}`;
+    if (savedReceipt?.payload === serialized) showReceipt(savedReceipt);
+    else sendLink.textContent = "Open Text Message";
     copyStatus.textContent = "";
     requestForm.hidden = true;
     requestReview.hidden = false;

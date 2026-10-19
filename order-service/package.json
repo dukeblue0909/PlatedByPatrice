@@ -1,0 +1,7 @@
+{
+  "name": "patrice-orders",
+  "private": true,
+  "type": "module",
+  "scripts": {"dev": "wrangler dev", "deploy": "wrangler deploy", "test": "node --test test/*.test.js", "check": "wrangler deploy --dry-run --outdir /tmp/patrice-worker-build"},
+  "devDependencies": {"wrangler": "4.50.0"}
+}
