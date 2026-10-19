@@ -67,8 +67,12 @@ if (menus.length && requestForm && requestReview) {
   const submitStatus = document.getElementById('websiteSubmitStatus');
   submitButton.addEventListener('click', async () => {
     if (!websitePayload) return;
-    const accepted = await submitWebsiteRequest(websitePayload, submitButton, submitStatus);
-    if (accepted) reviewedRequests.get(JSON.stringify({ ...websitePayload, id: undefined })).submitted = true;
+    const payload = websitePayload;
+    const editButton = document.getElementById('editTextRequest');
+    editButton.disabled = true;
+    const accepted = await submitWebsiteRequest(payload, submitButton, submitStatus);
+    if (accepted) reviewedRequests.get(JSON.stringify({ ...payload, id: undefined })).submitted = true;
+    editButton.disabled = false;
   });
   let restoring = true;
   let activeMenu;
