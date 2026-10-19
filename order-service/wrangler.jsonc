@@ -19,7 +19,7 @@
     {
       "binding": "DB",
       "database_name": "patrice-orders",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "252cb604-a8fa-4717-a50c-4780dd20a732",
       "migrations_dir": "migrations"
     }
   ],
