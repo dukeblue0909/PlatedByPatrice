@@ -1,54 +1,44 @@
 # Plated by Patrice
 
-Static one-page website for **Plated by Patrice** — weekly meal prep bundles and catering.
+Static HTML/CSS/JS storefront hosted by GitHub Pages at https://www.platedbypatrice.com. No new paid service or frontend dependency is required for the October 2026 experience update.
 
-## Structure
+## Customer experience
 
-- `index.html` — the whole site (hero, weekly menu, gallery, real-orders spotlight, about, order/contact, footer)
-- `assets/css/style.css` — styles
-- `assets/js/main.js` — mobile navigation and text request builder
-- `assets/js/menu-data.js` — October weekly menus, entree choices, and upgrade prices
-- `assets/images/` — food photos, portrait, video posters
-- `assets/video/` — prep/spread video clips
+The homepage leads to the weekly menu, saved favorites, bundle builder, and catering. Orders are requested by Friday for Sunday pickup; Patrice confirms the pickup time, availability, dietary needs, and final price. No cutoff hour or pickup date is inferred. Gallery, real orders, owner story, and confirmed-order payment information remain available.
 
-No build step — it's plain HTML/CSS/JS.
+The builder has three editable steps: weeks and bundle quantities; four entree selections per bundle; contact and dietary notes. Review is a fourth stage with a separate submit action. All included weeks must be complete. Prices are integer cents; current menu upgrades determine the estimate. Copying an entree and duplicating bundles are supported. Text, download, and print alternatives remain available.
 
-## Updating the weekly menu
+## Menus
 
-Edit `assets/js/menu-data.js` to update menu weeks, prices, descriptions, and choices. It drives both the menu cards and the text request selections so they stay consistent. The October 5, 12, 19, and 26, 2026 menus were transcribed from **OCTOBER MENUS (1).docx**. Every $65 bundle includes any four entrees; the listed upgrades apply to each entree where selected.
+`assets/js/menu-data.js` drives the menu, required choices, estimates, and requests. November 2, 9, and 16, 2026 were transcribed from NOVEMBER 2026 MENUS - PLATED BY PATRICE.docx. Bundles are $65 for four entrees; catfish is +$2 and salmon is +$3 per selected entree. The November 9 wing flavor “Asian Garlic Parm” preserves the document wording. There are no meal prep bundles November 23 or November 30; these weeks are displayed as a notice and excluded from order selections.
 
-The menu opens to the current week's Monday using the Detroit calendar; Sundays open the upcoming Monday. Outside the supplied date range, it shows the next available menu, or the last supplied menu after the range ends. Each menu always displays its explicit date, and requests require Patrice's availability confirmation. Add new dated menus to keep the selection current; no deadlines or pickup schedules are inferred.
+The dated menu defaults using the Detroit calendar, with Sundays opening the upcoming Monday. Outside the supplied date range it shows the next available menu or the last supplied menu; explicit week labels and confirmation requirements remain visible. Add new dated menus and update the schedule notice when rolling forward. Do not infer availability from an old menu.
 
-Customers can select any entree multiple times. Mix-and-match entrees require a meat and two side selections; choosing seasoned rice opens a rice choice, and wings open the flavors listed for that week. Salad dressings, optional ingredients, and priced extras appear only for the relevant entree. The document lists **Asian Garlic Parm** as one flavor on October 12 and 19; this wording is preserved. Separate side selectors allow customers to request the same side twice, subject to confirmation.
+## Favorites and privacy
 
-## Text requests and payments
+Favorites are optional and account-free. Customers explicitly name and save a complete four-entree bundle. Up to 12 favorites live in localStorage under `patrice-favorites-v1` in the current browser and origin. The saved data contains only bundle names, meal option identifiers/labels, and selected extras, never customer contact fields, allergies, pickup preferences, or request notes. Advise customers not to save on a shared device. Clearing browser data removes favorites; they do not sync across devices.
 
-Customers check any combination of the four menu weeks, including all four together. Every checked week is included in the request, even when another week is being edited. Browsing a menu alone does not add it to the request. Each week has its own bundle count, four complete entree choices per bundle, and optional pickup preference. The customer supplies a name, optional reply number, dietary needs, and other instructions. Customers can copy the previous entree with all its options or duplicate a bundle within the same week.
+Reusing a favorite fills an empty bundle or appends one without overwriting an existing selection, up to ten bundles per week. It checks saved option IDs and labels against the selected week's menu, clears unavailable choices, explains replacements, and recalculates with current prices. Customers must finish choices and review before submitting. Delete removes the favorite from this browser. Invalid or blocked storage does not prevent ordering.
 
-The cart and final review show each week's bundle subtotal and upgrades, plus combined week/bundle/entree counts and an overall menu-price estimate. Prices use integer cents, and no unprovided taxes, fees, discounts, or pickup availability are invented. Every checked week must have four complete entree choices per bundle before review; the editor moves to the first missing choice. Removed weeks keep their selections but contribute no cost. Counts are limited to 1–10 bundles per included week.
+An unfinished meal cart uses sessionStorage (`patrice-meal-request-v1`) only for menu choices, included weeks, and quantities. Contact details, allergies, pickup preferences, and notes are not persisted. A menu data change invalidates the session draft; saved favorites remain available for compatibility checks.
 
-Meal selections and included weeks are saved in `sessionStorage` in the current browser tab and restored after reload. Contact information, pickup preferences, allergy information, and notes are **not** persisted. Saved choices are discarded if the menu data changes, and unavailable browser storage does not block using the form. There is no server-side order record or shared customer database.
+## Requests and tracking
 
-The review presents all meal details and creates one itemized SMS draft addressed to **313-727-1187**, including a request reference, preparation time in Detroit, contact/dietary notes, each week's pickup preference and bundle breakdown, and the combined estimate. The reference is for matching summaries; it is not an order confirmation. Customers must tap Send in their messaging app. Copy, text-file download, and a print/PDF layout provide alternatives for longer multi-week requests or computers without an SMS app. Print and download summaries retain the confirmation requirement. The site cannot verify message delivery.
+Both bundle and catering forms submit to the existing public request service:
+`https://plated-by-patrice-requests.dariouswaters.chatgpt.site/api/submit`
 
-Online ordering and checkout are not enabled. A text request does not reserve a bundle or confirm an order. Cash App and Zelle details are available in a collapsed section for customers whose requests Patrice has already confirmed. Set up a payment provider and a suitable checkout integration before enabling online orders; GitHub Pages cannot run a payment backend or verify payments.
+Requests are saved by that service for Patrice's private order dashboard. Preserve its payload contract and service endpoint when updating the storefront. Bundle totals are cents. A UUID identifies a reviewed payload for retries; the success reference comes from the service. The UI reports success only after a successful server response, and retries retain the same request ID. Changed reviewed payloads receive new IDs. No fake requests should be sent to production during QA: intercept submissions in browser tests.
 
-When changing the phone number, update the SMS links, generated message link in `assets/js/main.js`, and visible phone number together. Prices in `menu-data.js` are integer cents; the banner, estimates, and message use those prices. If the four-entree bundle size or base price changes, also update the explanatory copy and no-JavaScript fallback in `index.html`.
+A saved request is not a confirmed order. Customers wait for Patrice before paying through Cash App or Zelle. There is no card checkout, customer account, cross-device history, or automatic recurring order in this version.
 
-The stylesheet and application script URLs include a release query parameter in `index.html`; update it when deploying incompatible markup/script changes so browsers fetch matching assets.
+## Files and verification
 
-## Running locally
+- `index.html`: responsive storefront, wizard markup, review, catering, payment alternatives
+- `assets/css/style.css`: existing styles plus cleaner storefront and builder overrides
+- `assets/js/main.js`: menu rendering, bundle builder, wizard, favorites, review and submission
+- `assets/js/menu-data.js`: dated menu definitions and prices
+- `design-preview.html`: separate earlier design concept; not the ordering homepage
 
-```
-python3 -m http.server 8000
-```
+No build or install step. Serve with `python -m http.server 8000` for local preview. Update the stylesheet/script release query parameters with incompatible changes. Validate syntax with `node --check assets/js/main.js` and `node --check assets/js/menu-data.js`, then browser-check required choices, integer totals, favorite compatibility and deletion, blocked storage, multiweek review, submission errors/retries, catering, and mobile layouts. Mock backend submissions.
 
-Then open `http://localhost:8000`.
-
-## Deploying with GitHub Pages
-
-1. Push this repo to GitHub (already done if you're reading this from the repo).
-2. In the repo, go to **Settings → Pages**.
-3. Under **Build and deployment**, set **Source** to `Deploy from a branch`.
-4. Pick the branch this site lives on and `/ (root)` as the folder, then save.
-5. GitHub will publish the site at `https://<username>.github.io/<repo-name>/` within a minute or two.
+Publish the exact checked source to the `main` branch; GitHub Pages performs the build and deployment. Keep CNAME unchanged.

@@ -76,6 +76,169 @@ if (menus.length && requestForm && requestReview) {
   });
   let restoring = true;
   let activeMenu;
+  let currentStep = 0;
+  let wizardReady = false;
+  const wizardSteps = [];
+  const progressNav = document.getElementById("builderProgress");
+  const favoriteKey = "patrice-favorites-v1";
+  let favorites = [];
+  let favoritesReadable = true;
+  const optionLabel = (control) => (control.selectedOptions?.[0]?.textContent || "").replace(/ \(\+\$[\d,.]+\)$/, "");
+  try {
+    const saved = JSON.parse(localStorage.getItem(favoriteKey));
+    if (saved?.version === 1 && Array.isArray(saved.items)) {
+      favorites = saved.items.slice(0, 12).filter((item) => item && typeof item.id === "string" && typeof item.name === "string" && item.name.length <= 80 && Array.isArray(item.meals) && item.meals.length === 4 && item.meals.every((meal) => Array.isArray(meal) && meal.length <= 60 && meal.every((value) => value && typeof value.suffix === "string" && value.suffix.length < 300 && typeof value.value === "string" && value.value.length < 150 && typeof value.label === "string" && value.label.length < 200)));
+    }
+  } catch { favoritesReadable = false; }
+
+  function favoriteMessage(message) { document.getElementById("favoriteStatus").textContent = message; }
+  function persistFavorites(next) {
+    try {
+      localStorage.setItem(favoriteKey, JSON.stringify({ version: 1, items: next }));
+      favorites = next;
+      favoritesReadable = true;
+      renderFavorites();
+      return true;
+    } catch {
+      favoriteMessage("This browser could not save your change. Favorites need browser storage; you can still build and submit a request without saving.");
+      return false;
+    }
+  }
+  function renderFavorites() {
+    const list = document.getElementById("favoriteList");
+    list.replaceChildren();
+    if (!favorites.length) list.append(element("p", "favorite-empty", favoritesReadable ? "Your favorites will appear here after you save a complete bundle below." : "Favorites are unavailable in this browser. You can still build and submit your request."));
+    for (const favorite of favorites) {
+      const card = element("article", "favorite-card");
+      card.append(element("h3", "", favorite.name), element("p", "", "4 entrees · Current menu prices apply"));
+      const names = element("ul");
+      favorite.meals.forEach((meal) => names.append(element("li", "", meal.find((value) => value.suffix === "")?.label || "Saved entree")));
+      const use = element("button", "btn btn-primary", "Use for selected week");
+      use.type = "button";
+      use.addEventListener("click", () => applyFavorite(favorite));
+      const remove = element("button", "request-edit", "Delete favorite");
+      remove.type = "button";
+      remove.setAttribute("aria-label", `Delete favorite ${favorite.name}`);
+      remove.addEventListener("click", () => {
+        if (persistFavorites(favorites.filter((item) => item.id !== favorite.id))) favoriteMessage(`Deleted ${favorite.name} from this browser.`);
+      });
+      card.append(names, use, remove);
+      list.append(card);
+    }
+  }
+  function applyFavorite(favorite) {
+    if (!activeMenu) return;
+    const state = ensureState(activeMenu);
+    let target = state.bundles.slice(0, state.count).find((bundle) => bundle.meals.every((meal) => !meal.snapshot()[0]?.value));
+    if (!target) {
+      if (state.count >= 10) { favoriteMessage("This week already has 10 bundles. Remove a bundle before adding a favorite."); return; }
+      updateBundles(state.count + 1, activeMenu, false);
+      countInput.value = state.count;
+      target = state.bundles[state.count - 1];
+    }
+    selectedWeeks.add(activeMenu.week);
+    const missing = target.meals.flatMap((meal, index) => meal.restore(favorite.meals[index], true));
+    updateEstimate();
+    showEditor();
+    setStep(1);
+    const message = missing.length ? `Added ${favorite.name}. Some choices are unavailable for ${activeMenu.label.toLowerCase()}: ${[...new Set(missing)].join(", ")}. Choose replacements below. Current prices apply.` : `Added ${favorite.name} for ${activeMenu.label.toLowerCase()}. Review all choices and current prices before requesting.`;
+    favoriteMessage(message);
+    document.getElementById("favoriteApplyStatus").textContent = message;
+    target.node.scrollIntoView({ behavior: "smooth", block: "start" });
+    target.node.querySelector("select")?.focus({ preventScroll: true });
+  }
+  function saveFavorite(bundle, nameInput, status) {
+    if (!bundle.meals.every((meal) => meal.read().complete)) {
+      status.textContent = "Complete all four entrees and their options before saving a favorite.";
+      bundle.node.querySelector("select:invalid")?.focus();
+      return;
+    }
+    const name = nameInput.value.trim();
+    if (!name) { status.textContent = "Give this favorite a name first."; nameInput.focus(); return; }
+    if (favorites.length >= 12) { status.textContent = "You have 12 favorites. Delete one above to make room."; return; }
+    const saved = { id: crypto.randomUUID(), name, meals: bundle.meals.map((meal) => meal.snapshot()) };
+    if (persistFavorites([...favorites, saved])) {
+      status.textContent = `Saved ${name} on this device. Find it in My favorites.`;
+      favoriteMessage(`Saved ${name}. Choose a menu week, then use your favorite to build a new request.`);
+    } else status.textContent = "Could not save in this browser. You can still submit your request.";
+  }
+  function setStep(index, focus = true) {
+    currentStep = index;
+    if (!wizardReady) return;
+    wizardSteps.forEach((step, i) => { step.hidden = i !== index; });
+    document.getElementById("wizardBack").hidden = index === 0;
+    document.getElementById("wizardNext").hidden = index === 2;
+    requestForm.querySelector('button[type="submit"]').hidden = index !== 2;
+    updateProgress(index);
+    if (focus) wizardSteps[index].querySelector("h4").focus();
+  }
+  function updateProgress(index) {
+    [...progressNav.children].forEach((item, i) => {
+      if (i === index) item.setAttribute("aria-current", "step"); else item.removeAttribute("aria-current");
+      item.classList.toggle("is-complete", i < index);
+    });
+  }
+  function validateMeals() {
+    if (!selectedWeeks.size) { setStep(0); showError("Include at least one menu week.", weekOptions.querySelector("input")); return false; }
+    const original = activeMenu.week;
+    for (const menu of menus.filter((item) => selectedWeeks.has(item.week))) {
+      setWeek(menu.week);
+      const state = states.get(menu.week);
+      const invalid = [...state.node.querySelectorAll("[required]")].find((control) => control.willValidate && !control.checkValidity());
+      if (invalid) { setStep(1, false); showError(`Finish all four entrees and required options for ${menu.label.toLowerCase()}.`, invalid); return false; }
+    }
+    setWeek(original);
+    return true;
+  }
+  function setupWizard() {
+    const fields = requestForm.querySelector(".request-fields");
+    const definitions = [
+      ["1. Choose your weeks", ["requestWeeks", "requestWeek", "requestBundles"]],
+      ["2. Build your four entrees", ["requestSelections"]],
+      ["3. How can Patrice reach you?", ["requestName", "requestPhone", "requestAllergies", "requestNotes"]],
+    ];
+    fields.before(validation);
+    definitions.forEach(([title, ids], index) => {
+      const step = element("section", "builder-step");
+      step.dataset.step = index;
+      const heading = element("h4", "step-heading", title);
+      heading.tabIndex = -1;
+      const layout = element("div", "request-fields");
+      ids.forEach((id) => layout.append(document.getElementById(id).closest(".request-field")));
+      step.append(heading, layout);
+      fields.before(step);
+      wizardSteps.push(step);
+    });
+    fields.remove();
+    const applied = element("p", "favorite-applied");
+    applied.id = "favoriteApplyStatus";
+    applied.setAttribute("role", "status");
+    wizardSteps[1].querySelector("h4").after(applied);
+    ["Weeks", "Meals", "Contact", "Review & send"].forEach((label, i) => progressNav.append(element("span", "", `${i + 1}. ${label}`)));
+    const actions = element("div", "wizard-actions");
+    const back = element("button", "btn btn-request-secondary", "Back");
+    back.type = "button"; back.id = "wizardBack";
+    back.addEventListener("click", () => { clearValidation(); setStep(Math.max(0, currentStep - 1)); });
+    const next = element("button", "btn btn-primary", "Continue →");
+    next.type = "button"; next.id = "wizardNext";
+    next.addEventListener("click", () => {
+      clearValidation();
+      if (currentStep === 0) {
+        if (!selectedWeeks.size) return showError("Choose at least one menu week.", weekOptions.querySelector("input"));
+        if (!countInput.checkValidity() || !countInput.value) return showError("Choose 1–10 whole bundles.", countInput);
+      }
+      if (currentStep === 1 && !validateMeals()) return;
+      setStep(Math.min(2, currentStep + 1));
+    });
+    actions.append(back, next, requestForm.querySelector('button[type="submit"]'));
+    requestForm.append(actions);
+    wizardReady = true;
+    setStep(0, false);
+    requestForm.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && event.target.tagName === "INPUT" && currentStep < 2) { event.preventDefault(); next.click(); }
+    });
+  }
+
 
   for (const menu of menus) {
     menuWeek.add(new Option(menu.label, menu.week));
@@ -215,25 +378,34 @@ if (menus.length && requestForm && requestReview) {
       },
       snapshot() {
         return [...node.querySelectorAll("select, input[type=checkbox]")].map((control) => ({
-          suffix: control.id.slice(prefix.length), value: control.value, checked: control.checked,
+          suffix: control.id.slice(prefix.length), value: control.value, checked: control.checked, label: control.tagName === "SELECT" ? optionLabel(control) : "",
         }));
       },
-      restore(values) {
-        if (!Array.isArray(values)) return;
+      restore(values, checkLabels = false) {
+        if (!Array.isArray(values)) return [];
+        const missing = [];
         const wasRestoring = restoring;
         restoring = true;
         try {
           for (const value of values.slice(0, 60)) {
             if (!value || typeof value.suffix !== "string") continue;
             const control = document.getElementById(`${prefix}${value.suffix}`);
-            if (!control || !node.contains(control)) continue;
+            if (!control || !node.contains(control)) {
+              if (checkLabels && (value.label || value.checked)) missing.push(value.label || "Optional choice");
+              continue;
+            }
             if (control.type === "checkbox") control.checked = value.checked === true;
             else if (control.tagName === "SELECT") {
               control.value = [...control.options].some((option) => option.value === value.value) ? value.value : "";
+              if (checkLabels && value.value && (!control.value || optionLabel(control) !== value.label)) {
+                missing.push(value.label || "Saved choice");
+                control.value = "";
+              }
             } else continue;
             control.dispatchEvent(new Event("change", { bubbles: true }));
           }
         } finally { restoring = wasRestoring; }
+        return missing;
       },
     };
   }
@@ -247,8 +419,8 @@ if (menus.length && requestForm && requestReview) {
     const pickup = element("input");
     pickup.id = `pickup-${menu.week}`;
     pickup.maxLength = 120;
-    pickup.placeholder = "Preferred day or time; Patrice will confirm";
-    const label = element("label", "", `Pickup preference for ${menu.label.toLowerCase()} (optional)`);
+    pickup.placeholder = "Preferred Sunday time; Patrice will confirm";
+    const label = element("label", "", `Sunday pickup time preference for ${menu.label.toLowerCase()} (optional)`);
     label.htmlFor = pickup.id;
     pickupNode.append(label, pickup);
     node.append(bundlesNode, pickupNode);
@@ -283,7 +455,23 @@ if (menus.length && requestForm && requestReview) {
       });
       const price = element("p", "bundle-price");
       node.append(duplicate, ...meals.map((meal) => meal.node), price);
-      state.bundles.push({ node, meals, duplicate, price });
+      const favoriteBox = element("details", "save-favorite-box");
+      favoriteBox.append(element("summary", "", "Save this bundle as a favorite"));
+      const favoriteName = element("input");
+      favoriteName.id = `favorite-${menu.week}-${index}`;
+      favoriteName.maxLength = 80;
+      favoriteName.placeholder = "e.g. Sunday favorites";
+      const favoriteLabel = element("label", "", "Favorite name (meal choices only)");
+      favoriteLabel.htmlFor = favoriteName.id;
+      const favoriteButton = element("button", "btn btn-request-secondary", "Save on this device");
+      favoriteButton.type = "button";
+      const status = element("p", "favorite-save-status");
+      status.setAttribute("role", "status");
+      const bundle = { node, meals, duplicate, price };
+      favoriteButton.addEventListener("click", () => saveFavorite(bundle, favoriteName, status));
+      favoriteBox.append(favoriteLabel, favoriteName, favoriteButton, element("p", "request-disclosure", "Optional. Avoid saving on shared devices. Contact details and notes are not saved in favorites."), status);
+      node.append(favoriteBox);
+      state.bundles.push(bundle);
       state.bundlesNode.append(node);
     }
     state.bundles.forEach((bundle, index) => {
@@ -379,16 +567,22 @@ if (menus.length && requestForm && requestReview) {
       }
     }
     renderTotals(document.getElementById("requestCart"), request, true);
+    const complete = request.weeks.flatMap((item) => item.bundles.flat()).filter((meal) => meal.complete).length;
+    document.getElementById("mealProgress").textContent = `${complete} of ${request.mealCount} entrees complete across your selected weeks`;
+    document.getElementById("mobileBagTotal").textContent = `${money(request.totalCents)} estimate · ${complete}/${request.mealCount} entrees`;
+    document.getElementById("mobileBag").hidden = false;
     saveCart();
   }
 
   function clearValidation() { validation.hidden = true; validation.textContent = ""; }
   function showError(message, control) {
+    const step = control?.closest(".builder-step");
+    if (step) setStep(Number(step.dataset.step), false);
     validation.textContent = message;
     validation.hidden = false;
     if (control) { control.focus(); control.reportValidity?.(); }
   }
-  function showEditor() { requestReview.hidden = true; requestForm.hidden = false; }
+  function showEditor() { requestReview.hidden = true; requestForm.hidden = false; updateProgress(currentStep); }
 
   function setWeek(week) {
     activeMenu = menus.find((menu) => menu.week === week);
@@ -478,7 +672,6 @@ if (menus.length && requestForm && requestReview) {
     setWeek(originalWeek);
     const request = readRequest();
     const customer = { name: nameInput.value.trim(), phone, allergies: document.getElementById("requestAllergies").value.trim(), notes: document.getElementById("requestNotes").value.trim() };
-    renderReview(request, customer);
     const requestData = { customer: customer.name, contact: phone, type: 'Bundle', quantity: request.bundleCount, guests: 0, total: request.totalCents,
       details: request.weeks.map(week => [week.menu.label, `Pickup preference: ${week.pickup || 'Please confirm'}`, ...week.bundles.flatMap((bundle, i) => [`Bundle ${i+1}:`, ...bundle.map(meal => `${meal.label}: ${meal.details.join('; ')}`)])].join('\n')).join('\n\n'),
       notes: [`Website estimate only; confirm price and availability.`, customer.allergies ? `ALLERGIES / DIETARY: ${customer.allergies}` : '', customer.notes].filter(Boolean).join('\n'), website: document.getElementById('requestWebsite').value };
@@ -488,6 +681,7 @@ if (menus.length && requestForm && requestReview) {
     requestId = previous.id;
     reference = `PBP-${requestId.slice(0, 8).toUpperCase()}`;
     websitePayload = { ...requestData, id: requestId };
+    renderReview(request, customer);
     submitButton.disabled = previous.submitted;
     submitButton.textContent = previous.submitted ? 'Request received ✓' : 'Submit request to Patrice';
     submitStatus.textContent = previous.submitted ? `Request ${reference} was already received. Patrice will confirm the details.` : 'Ready to submit. Your request is saved only after you click Submit request to Patrice.';
@@ -520,11 +714,13 @@ if (menus.length && requestForm && requestReview) {
     copyStatus.textContent = "";
     requestForm.hidden = true;
     requestReview.hidden = false;
+    updateProgress(3);
     document.getElementById("requestReviewHeading").focus();
   });
 
   document.getElementById("editTextRequest").addEventListener("click", () => {
     showEditor();
+    setStep(2);
     document.getElementById("requestName").focus();
   });
   document.getElementById("copyTextRequest").addEventListener("click", async () => {
@@ -584,6 +780,14 @@ if (menus.length && requestForm && requestReview) {
   restoring = false;
   updateEstimate();
   menuWeek.hidden = false;
+  setupWizard();
+  renderFavorites();
+  document.getElementById("buildSelectedMenu").addEventListener("click", () => {
+    selectedWeeks.add(activeMenu.week);
+    showEditor();
+    updateEstimate();
+    setStep(1, false);
+  });
 }
 
 
@@ -603,4 +807,9 @@ if (cateringForm) {
     const ok = await submitWebsiteRequest({ ...payload, id: cateringId }, button, document.getElementById('cateringSubmitStatus'));
     if (ok) cateringForm.querySelectorAll('input, textarea').forEach(input => { input.readOnly = true; });
   });
+}
+
+// Catering links open the form before navigating to it.
+for (const link of document.querySelectorAll("[data-open-catering]")) {
+  link.addEventListener("click", () => { document.getElementById("catering-request").open = true; });
 }

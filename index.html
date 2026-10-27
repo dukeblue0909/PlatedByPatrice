@@ -9,44 +9,46 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=warm-live-pricing-2" />
+<link rel="stylesheet" href="assets/css/style.css?v=clean-bundles-20261027" />
 </head>
 <body>
+<a class="skip-link" href="#mainContent">Skip to content</a>
 
 <header class="site-header">
   <nav class="nav">
     <a href="#top" class="brand">Plated <span>by</span> Patrice</a>
     <ul class="nav-links" id="navLinks">
       <li><a href="#menu">Menu</a></li>
-      <li><a href="#gallery">Gallery</a></li>
-      <li><a href="#orders">Real Orders</a></li>
+      <li><a href="#favorites">My favorites</a></li>
+      <li><a href="#catering-request" data-open-catering>Catering</a></li>
       <li><a href="#about">About</a></li>
-      <li><a href="#order" class="nav-cta">Request an Order</a></li>
+      <li><a href="#order" class="nav-cta">Build a Bundle</a></li>
     </ul>
     <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
   </nav>
 </header>
 
-<section class="hero" id="top">
-  <div class="hero-media">
-    <img src="assets/images/catering-spread-wide.jpg" alt="A full spread of Plated by Patrice catering trays on a dining table" />
-  </div>
+<main id="mainContent">
+<section class="hero clean-hero" id="top">
   <div class="hero-content">
-    <span class="eyebrow">Weekly Meal Prep &amp; Catering</span>
-    <h1>Plated by Patrice</h1>
-    <p class="lead">Seasoned to serve. Fresh, home-cooked meal prep bundles and catering spreads made to order every week — mix, match, and pick your flavors.</p>
-    <div class="btn-row">
-      <a href="#menu" class="btn btn-primary">Explore the Menu</a>
-      <a href="#order" class="btn btn-outline">Start a Request</a>
-    </div>
+    <span class="eyebrow">Home-cooked. Made for your week.</span>
+    <h1>A little less prep.<br>A lot more <em>flavor.</em></h1>
+    <p class="lead">Four entrees, your favorite sides, and one less thing on your plate. November meal prep is here.</p>
+    <div class="btn-row"><a href="#order" class="btn btn-primary">Build a Bundle &rarr;</a><a href="#catering-request" class="hero-catering" data-open-catering>Planning an event? Catering &rarr;</a></div>
   </div>
+  <div class="hero-media"><img src="assets/images/meal-prep-four-up.jpg" alt="Four freshly prepared Plated by Patrice meals" fetchpriority="high" /><span>From Patrice’s kitchen</span></div>
 </section>
+<div class="container"><div class="ordering-schedule" aria-label="Weekly ordering schedule">
+  <div><small>01 / ORDER BY</small><strong>Friday</strong><p>Place your weekly request by Friday.</p></div>
+  <div><small>02 / PICKUP</small><strong>Sunday</strong><p>Patrice will confirm your pickup time.</p></div>
+  <div><small>03 / YOUR BUNDLE</small><strong>Any 4 entrees · $65</strong><p>Catfish +$2 · Salmon +$3 per entree.</p></div>
+</div></div>
 
 <section id="menu">
   <div class="container">
     <div class="section-head">
-      <span class="section-tag">Seasoned to Serve</span>
-      <h2>Weekly Meal Prep Bundles</h2>
+      <span class="section-tag">A fresh menu, every week</span>
+      <h2>Make this week delicious.</h2>
       <p>Choose a menu week, then mix and match four entrees per bundle. Submit your selections below. Patrice will confirm the details.</p>
     </div>
 
@@ -58,11 +60,186 @@
       <p id="menuWeekHelp">Four entrees per bundle, in any combination. Each week has its own choices.</p>
     </div>
     <div class="menu-banner" id="menuBanner">November 2026 Meal Prep &nbsp;|&nbsp; $65 per bundle &nbsp;|&nbsp; Choose any 4 entrees</div>
+    <div class="menu-photo"><img src="assets/images/catering-spread-wide.jpg" alt="A spread of dishes from Patrice’s kitchen" loading="lazy" /><p>From our kitchen · Gallery photo; see the menu below for this week’s dishes.</p></div>
     <div class="menu-grid" id="weeklyMenuCards"></div>
     <noscript><p class="menu-note">Text Patrice at <a href="sms:+13137271187">313-727-1187</a> for the November menus. Each $65 bundle includes four entrees; upgrades cost extra.</p></noscript>
 
     <p class="menu-note"><strong>Options change weekly.</strong> Patrice will confirm availability, your final price, and pickup time by text.</p>
-    <div class="menu-cta"><a href="#order" class="btn btn-primary">Request This Menu</a></div>
+    <div class="menu-cta"><a id="buildSelectedMenu" href="#order" class="btn btn-primary">Build This Week’s Bundle &rarr;</a></div>
+  </div>
+</section>
+
+<section id="favorites" class="favorites-section"><div class="container">
+  <div class="favorites-heading"><div><span class="section-tag">Your favorites, ready for next time</span><h2>Your usual, in a few taps.</h2><p>Name and save a complete bundle in the builder below. Bring it back when those dishes return.</p></div><a href="#order" class="btn btn-primary">Build your first favorite &rarr;</a></div>
+  <p class="device-notice">Optional and free. Favorites stay in this browser on this device; no account is needed. Only meal choices and the name you give your bundle are saved. Avoid saving on a shared device. Clearing browser data removes favorites.</p>
+  <div id="favoriteList" class="favorite-list"></div><p id="favoriteStatus" role="status" aria-live="polite"></p>
+  <noscript><p>Enable JavaScript to save favorites, or text Patrice at <a href="sms:+13137271187">313-727-1187</a>.</p></noscript>
+</div></section>
+
+<section class="order-section" id="order">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-tag">Let's Get Cooking</span>
+      <h2>Good food. A few easy steps.</h2>
+      <p>Order by Friday for Sunday pickup. Patrice will confirm availability, your final price, and pickup time before you pay.</p>
+    </div>
+
+    <div class="request-layout">
+      <div class="request-card">
+        <nav id="builderProgress" class="builder-progress" aria-label="Bundle builder progress"></nav>
+        <form id="textRequestForm" novalidate hidden>
+          <h3>Your meal prep request</h3>
+          <p class="request-intro">Choose your weeks, customize your meals, then review and send. Order by Friday for Sunday pickup; Patrice confirms your pickup time.</p>
+          <div class="request-fields">
+            <div class="request-field">
+              <label for="requestName">Your name <span>(required)</span></label>
+              <input id="requestName" name="name" autocomplete="name" maxlength="80" required />
+            </div>
+            <div class="request-field">
+              <label for="requestPhone">Reply phone number <span>(required)</span></label>
+              <input id="requestPhone" name="phone" type="tel" required autocomplete="tel" maxlength="30" placeholder="Best number for Patrice to reach you" />
+            </div>
+            <div class="request-field request-field-wide">
+              <fieldset class="request-weeks">
+                <legend>Which weeks would you like?</legend>
+                <p>Check every week to include in your request. Availability is confirmed by Patrice.</p>
+                <div id="requestWeeks" class="request-week-options"></div>
+                <button id="includeAllWeeks" type="button" class="request-edit">Include all available weeks</button>
+              </fieldset>
+              <p id="requestValidation" class="request-error" role="alert" hidden></p>
+            </div>
+            <div class="request-field request-field-wide">
+              <label for="requestWeek">Customize this week</label>
+              <select id="requestWeek" aria-describedby="activeWeekStatus"></select>
+              <p id="activeWeekStatus" class="active-week-status"></p>
+              <button id="includeActiveWeek" type="button" class="request-edit" hidden>Include this week in my request</button>
+            </div>
+            <div class="request-field request-field-wide">
+              <label for="requestBundles">Bundles for this week <span>(required)</span></label>
+              <input id="requestBundles" name="bundles" type="number" min="1" max="10" step="1" inputmode="numeric" value="1" required aria-describedby="bundleHelp" />
+              <small id="bundleHelp">Each $65 bundle includes 4 entrees. Different weeks can have different bundle counts.</small>
+            </div>
+            <div class="request-field request-field-wide">
+              <p class="request-disclosure">Your estimate updates automatically as you add or remove extras. Add-ons are priced per entree.</p>
+              <div id="requestSelections"></div>
+              <p id="mealProgress" class="meal-progress" role="status" aria-live="polite"></p>
+              <p id="requestEstimate" class="request-estimate" role="status" aria-live="polite"></p>
+              <p id="requestDraftNotice" class="request-disclosure">Meal choices are saved in this browser tab. Contact details and notes are sent only when you submit your reviewed request.</p>
+            </div>
+            <div class="request-field request-field-wide">
+              <label for="requestAllergies">Food allergies or dietary needs <span>(optional)</span></label>
+              <textarea id="requestAllergies" name="allergies" rows="2" maxlength="500" placeholder="Tell Patrice what needs to be checked before she confirms your request."></textarea>
+            </div>
+            <div class="request-field request-field-wide">
+              <label for="requestNotes">Other instructions or questions <span>(optional)</span></label>
+              <textarea id="requestNotes" name="notes" rows="2" maxlength="500" placeholder="Share any dietary needs so Patrice can confirm what's possible."></textarea>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Review My Request <span aria-hidden="true">&rarr;</span></button>
+          <p class="request-disclosure">Review first, then click Submit request to Patrice. Your name, contact details, meal choices, and notes will be saved privately so Patrice can manage your request. No payment is collected by this form.</p>
+        </form>
+
+        <div id="requestReview" hidden>
+          <h3 id="requestReviewHeading" tabindex="-1">Review your complete request</h3>
+          <p class="request-intro">Check your selections, then submit your request. You can also keep a copy or text Patrice.</p>
+          <div id="requestReviewTotals"></div>
+          <div id="requestReviewItems"></div>
+
+          <details class="full-summary"><summary>View full text summary</summary><textarea id="requestMessage" aria-label="Full request summary" class="request-message" rows="12" readonly></textarea></details>
+          <div style="position:absolute;left:-10000px" aria-hidden="true"><label for="requestWebsite">Leave blank</label><input id="requestWebsite" tabindex="-1" autocomplete="off" /></div>
+          <div class="request-actions"><button id="submitWebsiteRequest" type="button" class="btn btn-primary">Submit request to Patrice</button></div>
+          <p id="websiteSubmitStatus" class="request-status" role="status" aria-live="polite"></p>
+          <details class="summary-alternatives"><summary>Keep a copy or follow up by text</summary>
+          <div class="request-actions">
+            <a id="sendTextRequest" class="btn btn-primary" href="sms:+13137271187">Open Text Message</a>
+            <button id="copyTextRequest" type="button" class="btn btn-request-secondary">Copy Message</button>
+          </div>
+          <p class="request-disclosure">Prefer to follow up by text? Copy this summary and send it to <a href="sms:+13137271187">313-727-1187</a> from your phone.</p>
+          <p id="requestCopyStatus" class="request-status" role="status"></p>
+          <div class="request-actions request-save-actions">
+            <button id="downloadTextRequest" type="button" class="request-edit">Download summary (.txt)</button>
+            <button id="printTextRequest" type="button" class="request-edit">Print / Save as PDF</button>
+          </div>
+          </details>
+          <button id="editTextRequest" type="button" class="request-edit">&larr; Edit your request</button>
+        </div>
+      </div>
+
+      <aside class="request-guide" aria-label="How website requests work">
+        <div class="request-cart">
+          <h3>Your bundle bag</h3>
+          <div id="requestCart"></div>
+          <p>Menu pricing estimate. Patrice confirms availability, any other charges, and the final total before payment.</p>
+        </div>
+        <h3>Good food starts with a conversation.</h3>
+        <ol>
+          <li><strong>Build your weeks.</strong><span>Include any menu weeks. Choose four entrees per bundle with your sides and extras.</span></li>
+          <li><strong>Review everything together.</strong><span>Check each week's bundles, upgrades, pickup preference, and the combined estimate.</span></li>
+          <li><strong>Submit your request.</strong><span>Your request goes directly to Patrice’s private order dashboard. Wait for her confirmation.</span></li>
+          <li><strong>Pay after confirmation.</strong><span>Arrange payment with Patrice once your request is confirmed.</span></li>
+        </ol>
+        <p>Submitting saves your request; it does not reserve a bundle or confirm an order. Patrice confirms availability and the final total. Payments are arranged separately.</p>
+        <a class="request-direct" href="sms:+13137271187">Prefer to text directly? 313-727-1187 &rarr;</a>
+        <noscript><p>The message builder needs JavaScript. Use the text link above or call <a href="tel:+13137271187">313-727-1187</a>.</p></noscript>
+      </aside>
+    </div>
+
+    <details class="payment-details" id="catering-request">
+      <summary>Planning an event? Send a catering request</summary>
+      <form id="cateringRequestForm" class="request-card">
+        <h3>Your catering request</h3>
+        <p>Share the occasion and menu you have in mind. Patrice will confirm availability and provide a quote.</p>
+        <div class="request-fields">
+          <div class="request-field"><label for="catName">Your name (required)</label><input id="catName" name="customer" autocomplete="name" maxlength="80" required /></div>
+          <div class="request-field"><label for="catContact">Phone or email (required)</label><input id="catContact" name="contact" autocomplete="email" minlength="7" maxlength="120" required /></div>
+          <div class="request-field"><label for="catEvent">Occasion (required)</label><input id="catEvent" name="event" maxlength="200" required /></div>
+          <div class="request-field"><label for="catGuests">Number of guests (required)</label><input id="catGuests" name="guests" type="number" min="1" max="100000" step="1" required /></div>
+          <div class="request-field"><label for="catDate">Preferred date/time · Detroit (required)</label><input id="catDate" name="date" type="datetime-local" required /></div>
+          <div class="request-field"><label for="catLocation">Event location / pickup preference</label><input id="catLocation" name="location" maxlength="500" /></div>
+          <div class="request-field request-field-wide"><label for="catMenu">Menu request (required)</label><textarea id="catMenu" name="menu" rows="4" maxlength="5000" required></textarea></div>
+          <div class="request-field request-field-wide"><label for="catNotes">Dietary needs and other notes</label><textarea id="catNotes" name="notes" rows="3" maxlength="2000"></textarea></div>
+        </div>
+        <div style="position:absolute;left:-10000px" aria-hidden="true"><label for="catWebsite">Leave blank</label><input id="catWebsite" name="website" tabindex="-1" autocomplete="off" /></div>
+        <p class="request-disclosure">Submitting shares these details privately with Patrice to manage your request. This is a quote request, not a confirmed booking. No payment is collected.</p>
+        <button type="submit" class="btn btn-primary">Submit catering request</button>
+        <p id="cateringSubmitStatus" class="request-status" role="status" aria-live="polite"></p>
+      </form>
+    </details>
+
+    <details class="payment-details">
+      <summary>Already confirmed with Patrice? Payment options</summary>
+      <p class="payment-note">Only send payment after Patrice confirms your request and final total. Sending payment here does not place an order through the website.</p>
+      <div class="order-grid">
+      <div class="order-card">
+        <div class="icon">💵</div>
+        <h3>Cash App</h3>
+        <p>For requests already confirmed by Patrice</p>
+        <div class="value">$PlatedbyPatrice</div>
+        <div class="payment-qr payment-qr-cash">
+          <svg viewBox="74 514 572 572" role="img" aria-label="Cash App QR code for Plated by Patrice">
+            <image href="1000001392.png" width="720" height="1612" />
+          </svg>
+        </div>
+        <p>Scan with Cash App to pay.</p>
+      </div>
+      <div class="order-card">
+        <div class="icon">📱</div>
+        <h3>Zelle / Text</h3>
+        <p>Confirm your request by text before sending payment</p>
+        <div class="value">313-727-1187</div>
+        <div class="payment-qr payment-qr-zelle">
+          <svg viewBox="208 535 304 304" role="img" aria-label="Zelle QR code for Patrice Watson">
+            <image href="1000001391.png" width="720" height="1612" />
+          </svg>
+        </div>
+        <p>Scan with your bank's Zelle app. Confirm Patrice Watson before paying.</p>
+      </div>
+      </div>
+
+    <div class="order-cta">
+      <a href="https://cash.app/$PlatedbyPatrice" target="_blank" rel="noopener" class="btn btn-dark">Pay with Cash App</a>
+    </div>
+    </details>
   </div>
 </section>
 
@@ -152,176 +329,16 @@
   </div>
 </section>
 
-<section class="order-section" id="order">
-  <div class="container">
-    <div class="section-head">
-      <span class="section-tag">Let's Get Cooking</span>
-      <h2>Send your request</h2>
-      <p>Tell Patrice what you have in mind. She'll confirm availability, your final price, and pickup details before you pay.</p>
-    </div>
 
-    <div class="request-layout">
-      <div class="request-card">
-        <form id="textRequestForm" novalidate hidden>
-          <h3>Your meal prep request</h3>
-          <p class="request-intro">Choose one week or all four. Build your bundles, see the combined total, and submit one organized request directly to Patrice.</p>
-          <div class="request-fields">
-            <div class="request-field">
-              <label for="requestName">Your name <span>(required)</span></label>
-              <input id="requestName" name="name" autocomplete="name" maxlength="80" required />
-            </div>
-            <div class="request-field">
-              <label for="requestPhone">Reply phone number <span>(required)</span></label>
-              <input id="requestPhone" name="phone" type="tel" required autocomplete="tel" maxlength="30" placeholder="Best number for Patrice to reach you" />
-            </div>
-            <div class="request-field request-field-wide">
-              <fieldset class="request-weeks">
-                <legend>Which weeks would you like?</legend>
-                <p>Check every week to include in your request. Availability is confirmed by Patrice.</p>
-                <div id="requestWeeks" class="request-week-options"></div>
-                <button id="includeAllWeeks" type="button" class="request-edit">Include all 4 weeks</button>
-              </fieldset>
-              <p id="requestValidation" class="request-error" role="alert" hidden></p>
-            </div>
-            <div class="request-field request-field-wide">
-              <label for="requestWeek">Customize this week</label>
-              <select id="requestWeek" aria-describedby="activeWeekStatus"></select>
-              <p id="activeWeekStatus" class="active-week-status"></p>
-              <button id="includeActiveWeek" type="button" class="request-edit" hidden>Include this week in my request</button>
-            </div>
-            <div class="request-field request-field-wide">
-              <label for="requestBundles">Bundles for this week <span>(required)</span></label>
-              <input id="requestBundles" name="bundles" type="number" min="1" max="10" step="1" inputmode="numeric" value="1" required aria-describedby="bundleHelp" />
-              <small id="bundleHelp">Each $65 bundle includes 4 entrees. Different weeks can have different bundle counts.</small>
-            </div>
-            <div class="request-field request-field-wide">
-              <p class="request-disclosure">Your estimate updates automatically as you add or remove extras. Add-ons are priced per entree.</p>
-              <div id="requestSelections"></div>
-              <p id="requestEstimate" class="request-estimate" role="status" aria-live="polite"></p>
-              <p id="requestDraftNotice" class="request-disclosure">Meal choices are saved in this browser tab. Contact details and notes are sent only when you submit your reviewed request.</p>
-            </div>
-            <div class="request-field request-field-wide">
-              <label for="requestAllergies">Food allergies or dietary needs <span>(optional)</span></label>
-              <textarea id="requestAllergies" name="allergies" rows="2" maxlength="500" placeholder="Tell Patrice what needs to be checked before she confirms your request."></textarea>
-            </div>
-            <div class="request-field request-field-wide">
-              <label for="requestNotes">Other instructions or questions <span>(optional)</span></label>
-              <textarea id="requestNotes" name="notes" rows="2" maxlength="500" placeholder="Share any dietary needs so Patrice can confirm what's possible."></textarea>
-            </div>
-          </div>
-          <button type="submit" class="btn btn-primary">Review All Weeks &amp; Total <span aria-hidden="true">&rarr;</span></button>
-          <p class="request-disclosure">Review first, then click Submit request to Patrice. Your name, contact details, meal choices, and notes will be saved privately so Patrice can manage your request. No payment is collected by this form.</p>
-        </form>
-
-        <div id="requestReview" hidden>
-          <h3 id="requestReviewHeading" tabindex="-1">Review your complete request</h3>
-          <p class="request-intro">Check your selections, then submit your request. You can also keep a copy or text Patrice.</p>
-          <div id="requestReviewTotals"></div>
-          <div id="requestReviewItems"></div>
-          <label for="requestMessage">Your request summary</label>
-          <textarea id="requestMessage" class="request-message" rows="12" readonly></textarea>
-          <div style="position:absolute;left:-10000px" aria-hidden="true"><label for="requestWebsite">Leave blank</label><input id="requestWebsite" tabindex="-1" autocomplete="off" /></div>
-          <div class="request-actions"><button id="submitWebsiteRequest" type="button" class="btn btn-primary">Submit request to Patrice</button></div>
-          <p id="websiteSubmitStatus" class="request-status" role="status" aria-live="polite"></p>
-          <div class="request-actions">
-            <a id="sendTextRequest" class="btn btn-primary" href="sms:+13137271187">Open Text Message</a>
-            <button id="copyTextRequest" type="button" class="btn btn-request-secondary">Copy Message</button>
-          </div>
-          <p class="request-disclosure">Prefer to follow up by text? Copy this summary and send it to <a href="sms:+13137271187">313-727-1187</a> from your phone.</p>
-          <p id="requestCopyStatus" class="request-status" role="status"></p>
-          <div class="request-actions request-save-actions">
-            <button id="downloadTextRequest" type="button" class="request-edit">Download summary (.txt)</button>
-            <button id="printTextRequest" type="button" class="request-edit">Print / Save as PDF</button>
-          </div>
-          <button id="editTextRequest" type="button" class="request-edit">&larr; Edit your request</button>
-        </div>
-      </div>
-
-      <aside class="request-guide" aria-label="How website requests work">
-        <div class="request-cart">
-          <h3>Your request at a glance</h3>
-          <div id="requestCart"></div>
-          <p>Menu pricing estimate. Patrice confirms availability, any other charges, and the final total before payment.</p>
-        </div>
-        <h3>Good food starts with a conversation.</h3>
-        <ol>
-          <li><strong>Build your weeks.</strong><span>Include any menu weeks. Choose four entrees per bundle with your sides and extras.</span></li>
-          <li><strong>Review everything together.</strong><span>Check each week's bundles, upgrades, pickup preference, and the combined estimate.</span></li>
-          <li><strong>Submit your request.</strong><span>Your request goes directly to Patrice’s private order dashboard. Wait for her confirmation.</span></li>
-          <li><strong>Pay after confirmation.</strong><span>Arrange payment with Patrice once your request is confirmed.</span></li>
-        </ol>
-        <p>Submitting saves your request; it does not reserve a bundle or confirm an order. Patrice confirms availability and the final total. Payments are arranged separately.</p>
-        <a class="request-direct" href="sms:+13137271187">Prefer to text directly? 313-727-1187 &rarr;</a>
-        <noscript><p>The message builder needs JavaScript. Use the text link above or call <a href="tel:+13137271187">313-727-1187</a>.</p></noscript>
-      </aside>
-    </div>
-
-    <details class="payment-details" id="catering-request">
-      <summary>Planning an event? Send a catering request</summary>
-      <form id="cateringRequestForm" class="request-card">
-        <h3>Your catering request</h3>
-        <p>Share the occasion and menu you have in mind. Patrice will confirm availability and provide a quote.</p>
-        <div class="request-fields">
-          <div class="request-field"><label for="catName">Your name (required)</label><input id="catName" name="customer" autocomplete="name" maxlength="80" required /></div>
-          <div class="request-field"><label for="catContact">Phone or email (required)</label><input id="catContact" name="contact" autocomplete="email" minlength="7" maxlength="120" required /></div>
-          <div class="request-field"><label for="catEvent">Occasion (required)</label><input id="catEvent" name="event" maxlength="200" required /></div>
-          <div class="request-field"><label for="catGuests">Number of guests (required)</label><input id="catGuests" name="guests" type="number" min="1" max="100000" step="1" required /></div>
-          <div class="request-field"><label for="catDate">Preferred date/time · Detroit (required)</label><input id="catDate" name="date" type="datetime-local" required /></div>
-          <div class="request-field"><label for="catLocation">Event location / pickup preference</label><input id="catLocation" name="location" maxlength="500" /></div>
-          <div class="request-field request-field-wide"><label for="catMenu">Menu request (required)</label><textarea id="catMenu" name="menu" rows="4" maxlength="5000" required></textarea></div>
-          <div class="request-field request-field-wide"><label for="catNotes">Dietary needs and other notes</label><textarea id="catNotes" name="notes" rows="3" maxlength="2000"></textarea></div>
-        </div>
-        <div style="position:absolute;left:-10000px" aria-hidden="true"><label for="catWebsite">Leave blank</label><input id="catWebsite" name="website" tabindex="-1" autocomplete="off" /></div>
-        <p class="request-disclosure">Submitting shares these details privately with Patrice to manage your request. This is a quote request, not a confirmed booking. No payment is collected.</p>
-        <button type="submit" class="btn btn-primary">Submit catering request</button>
-        <p id="cateringSubmitStatus" class="request-status" role="status" aria-live="polite"></p>
-      </form>
-    </details>
-
-    <details class="payment-details">
-      <summary>Already confirmed with Patrice? Payment options</summary>
-      <p class="payment-note">Only send payment after Patrice confirms your request and final total. Sending payment here does not place an order through the website.</p>
-      <div class="order-grid">
-      <div class="order-card">
-        <div class="icon">💵</div>
-        <h3>Cash App</h3>
-        <p>For requests already confirmed by Patrice</p>
-        <div class="value">$PlatedbyPatrice</div>
-        <div class="payment-qr payment-qr-cash">
-          <svg viewBox="74 514 572 572" role="img" aria-label="Cash App QR code for Plated by Patrice">
-            <image href="1000001392.png" width="720" height="1612" />
-          </svg>
-        </div>
-        <p>Scan with Cash App to pay.</p>
-      </div>
-      <div class="order-card">
-        <div class="icon">📱</div>
-        <h3>Zelle / Text</h3>
-        <p>Confirm your request by text before sending payment</p>
-        <div class="value">313-727-1187</div>
-        <div class="payment-qr payment-qr-zelle">
-          <svg viewBox="208 535 304 304" role="img" aria-label="Zelle QR code for Patrice Watson">
-            <image href="1000001391.png" width="720" height="1612" />
-          </svg>
-        </div>
-        <p>Scan with your bank's Zelle app. Confirm Patrice Watson before paying.</p>
-      </div>
-      </div>
-
-    <div class="order-cta">
-      <a href="https://cash.app/$PlatedbyPatrice" target="_blank" rel="noopener" class="btn btn-dark">Pay with Cash App</a>
-    </div>
-    </details>
-  </div>
-</section>
-
+</main>
+<div id="mobileBag" class="mobile-bag" hidden><span id="mobileBagTotal"></span><a href="#order" class="btn btn-primary">Continue bundle &rarr;</a></div>
 <footer>
   <p><strong>Plated by Patrice</strong> — Seasoned to Serve</p>
   <p>Weekly meal prep &amp; catering &middot; <a href="sms:+13137271187">Text 313-727-1187</a></p>
 </footer>
 
 <script src="assets/js/menu-data.js?v=november-2026"></script>
-<script src="assets/js/main.js?v=dashboard-orders-1"></script>
+<script src="assets/js/main.js?v=clean-bundles-20261027"></script>
 </body>
 </html>
 
